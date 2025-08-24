@@ -9,7 +9,7 @@ A comprehensive web application for end-to-end data analysis, built with Streaml
 - **Machine Learning**: Build, train, and evaluate predictive models (coming soon)
 
 ## Access
-[Access the live application here]()
+[Access the live application here](https://appdataanalysis-q4yoswt4f57jgr2vpvg2gj.streamlit.app)
 
 ## Installation
 To run locally:
