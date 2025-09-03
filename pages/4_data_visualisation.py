@@ -8,6 +8,7 @@ from typing import List, Dict
 from io import BytesIO
 
 def preview_data(df, max_rows=50, default_rows=5, key=None):
+    '''preview data'''
     max_rows = int(max_rows)
     default_rows = int(default_rows)
     if key is None:
@@ -20,6 +21,7 @@ def preview_data(df, max_rows=50, default_rows=5, key=None):
         st.dataframe(df.head(num_rows), hide_index=True)
 
 def get_column_types(df: pd.DataFrame) -> Dict[str, List[str]]:
+    '''get data type of columns'''
     numeric_cols = df.select_dtypes(include=np.number).columns.tolist()
     categorical_cols = df.select_dtypes(include=['object', 'category']).columns.tolist()
     datetime_cols = df.select_dtypes(include=['datetime', 'timedelta']).columns.tolist()
@@ -37,6 +39,7 @@ def get_column_types(df: pd.DataFrame) -> Dict[str, List[str]]:
     }
 
 def is_suitable_for_line(df: pd.DataFrame):
+    '''check whether data is suitable for plotting line'''
     col_types = get_column_types(df)
     # A line chart needs at least one numeric y-axis and either a numeric or datetime x-axis
     if len(col_types["numeric"]) >= 1 and (len(col_types["numeric"]) >= 2 or len(col_types["datetime"]) >= 1):
@@ -44,6 +47,7 @@ def is_suitable_for_line(df: pd.DataFrame):
     return False
 
 def is_suitable_for_bar(df: pd.DataFrame):
+    '''check whether data is suitable for plotting bar'''
     col_types = get_column_types(df)
     # A bar chart needs a categorical axis and a numeric axis
     if len(col_types["categorical"]) >= 1 and len(col_types["numeric"]) >= 1:
@@ -51,6 +55,7 @@ def is_suitable_for_bar(df: pd.DataFrame):
     return False
 
 def is_suitable_for_scatter(df: pd.DataFrame):
+    '''check whether data is suitable for plotting scatter'''
     col_types = get_column_types(df)
     # A scatter plot needs at least two numeric columns
     if len(col_types["numeric"]) >= 2:
@@ -58,6 +63,7 @@ def is_suitable_for_scatter(df: pd.DataFrame):
     return False
 
 def is_suitable_for_histogram(df: pd.DataFrame):
+    '''check whether data is suitable for plotting histogram'''
     col_types = get_column_types(df)
     # A histogram needs at least one numeric column
     if len(col_types["numeric"]) >= 1:
@@ -65,6 +71,7 @@ def is_suitable_for_histogram(df: pd.DataFrame):
     return False
 
 def is_suitable_for_box(df: pd.DataFrame):
+    '''check whether data is suitable for plotting box'''
     col_types = get_column_types(df)
     # A box plot needs at least one numeric column
     if len(col_types["numeric"]) >= 1:
@@ -72,6 +79,7 @@ def is_suitable_for_box(df: pd.DataFrame):
     return False
 
 def is_suitable_for_violin(df: pd.DataFrame):
+    '''check whether data is suitable for plotting violin'''
     col_types = get_column_types(df)
     if len(col_types["numeric"]) == 0:
         return False
@@ -81,6 +89,7 @@ def is_suitable_for_violin(df: pd.DataFrame):
     return True
 
 def is_suitable_for_pie(df: pd.DataFrame):
+    '''check whether data is suitable for plotting pie'''
     col_types = get_column_types(df)
     # A pie chart needs a categorical column for slices and a numeric column for values
     if len(col_types["categorical"]) >= 1 and len(col_types["numeric"]) >= 1:
@@ -88,6 +97,7 @@ def is_suitable_for_pie(df: pd.DataFrame):
     return False
 
 def is_suitable_for_stack(df: pd.DataFrame):
+    '''check whether data is suitable for plotting stack plot'''
     col_types = get_column_types(df)
     # A stack plot is similar to a line chart but often with multiple y-values
     if len(col_types["numeric"]) >= 1 and (len(col_types["numeric"]) >= 2 or len(col_types["datetime"]) >= 1):
@@ -95,6 +105,7 @@ def is_suitable_for_stack(df: pd.DataFrame):
     return False
 
 def select_axis_to_plot(chart_function_dict, chart, chart_df, df_cols_option, key_suffix=""):
+    '''allow user to select axis to plot'''
     col_x, col_y = st.columns(2)
     with col_x:
         x_axis = st.selectbox("Select the column for the X-axis:", df_cols_option, index=0, key=f"x_axis_{chart}_{key_suffix}")
@@ -107,6 +118,7 @@ def select_axis_to_plot(chart_function_dict, chart, chart_df, df_cols_option, ke
         function(chart_df, x_axis, y_axis)
 
 def select_axis_histogram(chart_function_dict, chart, chart_df, df_cols_option, key_suffix=""):
+    '''allow user to select axis to plot histogram'''
     numeric_cols = [col for col in df_cols_option if pd.api.types.is_numeric_dtype(chart_df[col])]
     col1, col2 = st.columns(2)
     with col1:
@@ -131,6 +143,7 @@ def select_axis_histogram(chart_function_dict, chart, chart_df, df_cols_option, 
     function(chart_df, selected_columns, n_bins, display_mode)
 
 def select_axis_box(chart_function_dict, chart, chart_df, df_cols_option, key_suffix=""):
+    '''allow user to select axis to plot box plot'''
     numeric_cols = [col for col in df_cols_option if pd.api.types.is_numeric_dtype(chart_df[col])]
     selected_columns = st.multiselect("Select column(s) to plot:", numeric_cols, default=numeric_cols[:min(1, len(numeric_cols))], key=f"box_cols_{key_suffix}")
     if not selected_columns:
@@ -140,6 +153,7 @@ def select_axis_box(chart_function_dict, chart, chart_df, df_cols_option, key_su
     function(chart_df, selected_columns)
 
 def select_axis_violin(chart_function_dict, chart, chart_df, df_cols_option, key_suffix=""):
+    '''allow user to select axis to plot violin plot'''
     numeric_cols = [col for col in df_cols_option if pd.api.types.is_numeric_dtype(chart_df[col])]
     categorical_cols = [col for col in df_cols_option if isinstance(chart_df[col].dtype, pd.CategoricalDtype) or pd.api.types.is_object_dtype(chart_df[col])]
     numeric, category = st.columns(2)
@@ -157,6 +171,7 @@ def select_axis_violin(chart_function_dict, chart, chart_df, df_cols_option, key
     function(chart_df, selected_num_cols, group_by)
 
 def select_axis_pie(chart_function_dict, chart, chart_df, df_cols_option, key_suffix=""):
+    '''allow user to select axis to plot pie plot'''
     numeric_cols = [col for col in df_cols_option if pd.api.types.is_numeric_dtype(chart_df[col])]
     categorical_cols = [col for col in df_cols_option if isinstance(chart_df[col].dtype, pd.CategoricalDtype) or pd.api.types.is_object_dtype(chart_df[col])]
     category, numeric = st.columns(2)
@@ -174,6 +189,7 @@ def select_axis_pie(chart_function_dict, chart, chart_df, df_cols_option, key_su
     function(chart_df, selected_cat_col, selected_num_col)
     
 def select_axis_stack(chart_function_dict, chart, chart_df, df_cols_option, key_suffix=""):
+    '''allow user to select axis to plot stack plot'''
     x_options = [col for col in df_cols_option if pd.api.types.is_numeric_dtype(chart_df[col]) or pd.api.types.is_datetime64_any_dtype(chart_df[col])]
     y_options = [col for col in df_cols_option if pd.api.types.is_numeric_dtype(chart_df[col])]
     colx, coly = st.columns(2)
@@ -188,12 +204,14 @@ def select_axis_stack(chart_function_dict, chart, chart_df, df_cols_option, key_
     function(chart_df, x_col, y_cols, plot_type)
 
 def get_image_download_link(fig, filename, text):
+    '''allow user to download and save plot'''
     buf = BytesIO()
     fig.savefig(buf, format="png", dpi=300, bbox_inches='tight')
     buf.seek(0)
     st.download_button(text, buf, file_name=filename, mime="image/png")
 
 def plot_line(df: pd.DataFrame, x: str, y: str):
+    '''plot line and allow customised options'''
     rotation = 0
     title = f"Line Chart: {y} vs {x}"
     x_label = x
@@ -277,6 +295,7 @@ def plot_line(df: pd.DataFrame, x: str, y: str):
         st.stop()
 
 def plot_bar(df: pd.DataFrame, x: str, y: str):
+    '''plot bar and allow customised options'''
     rotation = 0
     title = f"Bar Chart: {y} by {x}"
     x_label = x
@@ -321,6 +340,7 @@ def plot_bar(df: pd.DataFrame, x: str, y: str):
         st.stop()
 
 def plot_scatter(df: pd.DataFrame, x: str, y: str):
+    '''plot scatter and allow customised options'''
     title = f"Scatter Plot: {y} vs {x}"
     x_label = x
     y_label = y
@@ -360,6 +380,7 @@ def plot_scatter(df: pd.DataFrame, x: str, y: str):
         st.stop()
 
 def plot_histogram(df: pd.DataFrame, columns: list, bins: int, mode: str):
+    '''plot histogram and allow customised options'''
     title = "Histogram"
     with st.expander("Customisation Options"):
         col1, col2 = st.columns(2)
@@ -442,6 +463,7 @@ def plot_histogram(df: pd.DataFrame, columns: list, bins: int, mode: str):
         st.stop()
 
 def plot_box(df: pd.DataFrame, columns: list):
+    '''plot box and allow customised options'''
     title = "Boxplot"
     x_label = ""
     y_label = ""
@@ -502,6 +524,7 @@ def plot_box(df: pd.DataFrame, columns: list):
         st.stop()
 
 def plot_violin(df: pd.DataFrame, val_col: list, group_by: str = None):
+    '''plot violin and allow customised options'''
     title = f"Violin Plot of {', '.join(val_col)}"
     x_label = f"{group_by}" if group_by else ""
     y_label = "Value" if group_by else ""
@@ -570,6 +593,7 @@ def plot_violin(df: pd.DataFrame, val_col: list, group_by: str = None):
         st.stop()
 
 def plot_pie(df: pd.DataFrame, cat_col: str, val_col: str):
+    '''plot pie and allow customised options'''
     title = f"Distribution by {cat_col}"
     with st.expander("Customisation Options"):
         col1, col2 = st.columns(2)
@@ -625,6 +649,7 @@ def plot_pie(df: pd.DataFrame, cat_col: str, val_col: str):
         st.stop()
 
 def plot_stack(df: pd.DataFrame, x: str, y: list, type: str):
+    '''plot stack plot and allow customised options'''
     if x in y:
         st.warning("⚠️ Warning: The same column cannot be used for both X-axis and Y-axis. Please select different columns.")
         return
@@ -743,6 +768,7 @@ def main():
             reset_session_state()
             st.rerun()
 
+    # preview data
     st.subheader("👀 Data Preview")
     st.write("How many rows of data would you like to view?")
     preview_data(st.session_state.working_df, key="preview_initial")
@@ -773,6 +799,7 @@ def main():
         "Stack": plot_stack
     }
 
+    # only show options suitable for plotting
     valid_charts = [chart for chart in chart_options if chart_checks[chart](st.session_state.working_df)]
 
     plt.style.use('dark_background')
@@ -787,7 +814,7 @@ def main():
 
             for i, chart in enumerate(chart_selection):
                 st.markdown(f"### {chart} Chart")
-
+                # plot charts
                 if chart == "Line":
                     select_axis_to_plot(chart_function_dict, chart, chart_df, df_cols_option, key_suffix=str(i))
                 elif chart == "Bar":

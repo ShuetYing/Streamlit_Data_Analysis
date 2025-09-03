@@ -4,14 +4,17 @@ import numpy as np
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 
 def check_missing(df):
+    '''check missing values'''
     df_copy = df.copy()
     return df_copy.isnull().sum()
 
 def drop_missing(df, how="any"):
+    '''drop missing values'''
     df_copy = df.copy()
     return df_copy.dropna(how=how)
 
 def fill_missing(df, columns, method="mean", value=None):
+    '''fill missing values with selected method'''
     df_copy = df.copy()
     for col in columns:
         if method == "mean":
@@ -28,18 +31,22 @@ def fill_missing(df, columns, method="mean", value=None):
     return df_copy
 
 def rename_column(df, old_name, new_name):
+    '''rename column'''
     df_copy = df.copy()
     return df_copy.rename(columns={old_name: new_name})
 
 def drop_columns(df, columns):
+    '''drop column'''
     df_copy = df.copy()
     return df_copy.drop(columns=columns)
 
 def drop_duplicates(df):
+    '''remove duplicates in data'''
     df_copy = df.copy()
     return df_copy.drop_duplicates()
 
 def scale_data(df, method="minmax"):
+    '''scale data'''
     df_copy = df.copy()
     numeric_cols = df_copy.select_dtypes(include="number").columns
     scaler = MinMaxScaler() if method == "minmax" else StandardScaler()
@@ -47,14 +54,17 @@ def scale_data(df, method="minmax"):
     return df_copy
 
 def one_hot_encode(df, columns):
+    '''convert categorical data into numerical format'''
     df_copy = df.copy()
     return pd.get_dummies(df_copy, columns=columns)
 
 def aggregate_data(df, group_col, agg_func):
+    '''aggregate data'''
     df_copy = df.copy()
     return df_copy.groupby(group_col).agg(agg_func).reset_index()
 
 def log_transform(df, columns):
+    '''log transform data'''
     df_copy = df.copy()
     for col in columns:
         if pd.api.types.is_numeric_dtype(df_copy[col]):
@@ -65,6 +75,7 @@ def log_transform(df, columns):
     return df_copy
 
 def convert_column(df, column, target):
+    '''convert column datatype'''
     df_copy = df.copy()
     if target == "datetime":
         df_copy[column] = pd.to_datetime(df_copy[column], errors='coerce')
@@ -75,6 +86,7 @@ def convert_column(df, column, target):
     return df_copy
 
 def extract_datetime_features(df, column):
+    '''extract features in datetime format'''
     df_copy = df.copy()
     if pd.api.types.is_datetime64_any_dtype(df_copy[column]):
         df_copy[f'{column}_year'] = df_copy[column].dt.year
@@ -123,6 +135,7 @@ def main():
         st.session_state.working_df = st.session_state.initial_df.copy()
 
     with right_col:
+        # allow user to restore initial data 
         if st.button("Reset to Original Data", use_container_width=True):
             reset_session_state()
             reset_options()
@@ -132,6 +145,7 @@ def main():
 
     st.subheader("👀 Data Overview")
 
+    # preview data 
     col1, col2 = st.columns([1, 2])
     with col1:
         st.metric("Total Rows", st.session_state.working_df.shape[0])
@@ -153,6 +167,7 @@ def main():
 
     st.markdown("---")
 
+    # pre-process data options
     st.subheader("🧹 Data Preprocessing")
     st.write("Apply transformations to your dataset.")
 

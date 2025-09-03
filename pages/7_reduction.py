@@ -11,6 +11,7 @@ import seaborn as sns
 from io import BytesIO
 
 def get_image_download_link(fig, filename, text):
+    '''allow user to download and download plot'''
     buf = BytesIO()
     fig.savefig(buf, format="png", dpi=300, bbox_inches='tight')
     buf.seek(0)
@@ -24,6 +25,7 @@ def main():
     st.caption("Visualise your high-dimensional data in 2D or 3D using techniques like PCA, t-SNE, and UMAP. This is for visual exploration and does not affect the data used for model training.")
     st.markdown("---")
 
+    # description
     st.subheader("Dimensionality Reduction Techniques")
     st.markdown("""
                 ***Principal Component Analysis (PCA)***\n
@@ -74,6 +76,7 @@ def main():
         
         if features:
             max_components = len(features)
+            # select method
             method = st.selectbox("Method", ["PCA", "t-SNE", "UMAP"], key="redux_method")
             if method == "PCA":
                 n_components = st.slider("Number of Components", 2, max_components, min(2, max_components), key="redux_components")

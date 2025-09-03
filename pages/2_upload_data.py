@@ -24,7 +24,7 @@ def init_session_state():
         st.session_state.selected = "paste_data"
 
 def detect_text_format(pasted_data: str) -> str:
-
+	'''identify the format of the pasted data'''
 	try:
 		json.loads(pasted_data)
 		return "JSON"
@@ -55,6 +55,7 @@ def detect_text_format(pasted_data: str) -> str:
 	return "Unknown format"
 
 def validate_data(df):
+	'''check if data is empty or NA'''
 	if df.empty:
 		return "Empty dataframe"
 	elif df.isna().all().all():
@@ -62,6 +63,7 @@ def validate_data(df):
 	return None
 
 def process_data(pasted_data: str) -> tuple[Optional[pd.DataFrame], str]:
+	'''read pasted data according to the data format'''
 	format = detect_text_format(pasted_data)
 	try:
 		if format == "JSON":
@@ -80,6 +82,7 @@ def process_data(pasted_data: str) -> tuple[Optional[pd.DataFrame], str]:
 		return None, str(e), None
 
 def process_file(uploaded_file) -> tuple[Optional[pd.DataFrame], str]:
+	'''read and load file as data frame'''
 	try:
 		if uploaded_file.name.endswith(".json"):
 			df = pd.read_json(uploaded_file)
@@ -103,6 +106,7 @@ def process_file(uploaded_file) -> tuple[Optional[pd.DataFrame], str]:
 		return None, str(e), None
 
 def db_connection_string(db_type, params) -> str:
+	'''define the connection command'''
 	host = params.get("host")
 	username = params.get("user")
 	password = params.get("password")
@@ -124,6 +128,7 @@ def db_connection_string(db_type, params) -> str:
 
 @st.cache_resource
 def db_connection(connection_string):
+	'''connect to database'''
 	try:
 		engine = create_engine(connection_string)
 		with engine.connect() as conn:
@@ -196,6 +201,7 @@ def main():
 
 	with col2:
 		with st.container(border=True):
+			# paste data
 			if st.session_state.selected == "paste_data":
 				pasted_data = st.text_area("Paste your data here (supports CSV, TSV, JSON, space-delimited):", 
 					height=300, 
@@ -237,6 +243,7 @@ def main():
 					if st.session_state.show_raw:
 						st.code(st.session_state.pasted_data)
 			
+			# upload file
 			elif st.session_state.selected == "upload_file":
 				uploaded_file = st.file_uploader("Choose a file", 
 					type = ["xlsx", "txt", "tsv", "csv", "json"])
@@ -270,6 +277,7 @@ def main():
 					if st.session_state.show_preview:
 						st.dataframe(st.session_state.initial_df.head(), hide_index=True)				
 			
+			# connect to database
 			elif st.session_state.selected == "database":
 				db_type = st.selectbox("Database type", ["MySQL", "PostgreSQL", "Microsoft SQL Server", "SQLite"], 
 						index=None, placeholder="Select database type")
@@ -369,7 +377,7 @@ def main():
 					
 									if st.session_state.show_preview:
 										st.dataframe(st.session_state.initial_df.head(), hide_index=True)	
-
+		
 		if st.session_state.initial_df is not None and not st.session_state.initial_df.empty:
 			st.markdown(f"**Continue Your Analysis**")
 			st.write("Your dataset is ready. Proceed to explore, visualise, or model your data.")

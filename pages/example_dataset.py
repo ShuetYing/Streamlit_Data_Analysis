@@ -9,6 +9,7 @@ ssl._create_default_https_context = ssl._create_unverified_context
 
 @st.cache_data
 def load_sample_dataset(dataset_name):
+    '''load 4 sample datasets'''
     datasets = {
         "Iris": {
             "loader": lambda: load_iris(),
@@ -66,6 +67,7 @@ def load_sample_dataset(dataset_name):
     return df, dataset["description"]
 
 def show_data_preview(df):
+    '''data preview'''
     col1, col2 = st.columns([1, 2])
     
     with col1:
@@ -89,6 +91,7 @@ def show_data_preview(df):
             st.dataframe(df.describe(), use_container_width=True)
 
 def create_matplotlib_plot(df, x_col, y_col, hue_col=None):
+    '''create scatter plot for quick visulisation'''
     plt.figure(figsize=(10, 6))
     if hue_col:
         sns.scatterplot(data=df, x=x_col, y=y_col, hue=hue_col)
@@ -113,6 +116,7 @@ def main():
     sample_dataset_names = ["Iris", "Tips", "Diamonds", "Wine"]
     current_index = sample_dataset_names.index(st.session_state.selected_sample)
 
+    # choose dataset
     dataset_option = st.selectbox(
         "Choose a dataset:",
         sample_dataset_names,

@@ -16,12 +16,14 @@ import seaborn as sns
 from io import BytesIO
 
 def get_image_download_link(fig, filename, text):
+    '''allow user to download and save plot'''
     buf = BytesIO()
     fig.savefig(buf, format="png", dpi=300, bbox_inches='tight')
     buf.seek(0)
     st.download_button(text, buf, file_name=filename, mime="image/png")
 
 def plot_confusion_matrix(y_true, y_pred, classes):
+    '''plot confusion matrix'''
     cm = confusion_matrix(y_true, y_pred)
     fig, ax = plt.subplots(figsize=(6, 4))
     sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=classes, yticklabels=classes, ax=ax)
@@ -32,6 +34,7 @@ def plot_confusion_matrix(y_true, y_pred, classes):
     get_image_download_link(fig, "confusion_matrix.png", "Download Confusion Matrix")
 
 def plot_feature_importance(model, feature_names):
+    '''plot feature importance'''
     if hasattr(model, 'feature_importances_'):
         importances = model.feature_importances_
         indices = np.argsort(importances)[::-1]
@@ -48,6 +51,7 @@ def plot_feature_importance(model, feature_names):
         st.info("This model type does not provide feature importances.")
 
 def plot_regression_results(y_test, y_pred):
+    '''regression plot'''
     fig, ax = plt.subplots(figsize=(8, 6))
     ax.scatter(y_test, y_pred, alpha=0.8)
     ax.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'k--', lw=1.5, color="red")
@@ -58,6 +62,7 @@ def plot_regression_results(y_test, y_pred):
     get_image_download_link(fig, "regression_plot.png", "Download Regression Plot")
 
 def plot_clusters(df, features, cluster_labels):
+    '''plot data points in cluster'''
     st.write("### Cluster Visualisation")
     col1, col2 = st.columns(2)
     x_axis = col1.selectbox("Select X-axis for plot", options=features, index=0, key="cluster_x_axis")
@@ -70,6 +75,7 @@ def plot_clusters(df, features, cluster_labels):
     get_image_download_link(fig, "cluster_distribution.png", "Download Cluster Scatter Plot")
 
 def plot_elbow_method(data):
+    '''elbow plot to determine k'''
     st.write("#### Elbow Method for Optimal K")
     inertias = []
     k_range = range(1, 11)
@@ -87,6 +93,7 @@ def plot_elbow_method(data):
     st.info("The 'elbow' in the plot (the point where the rate of decrease sharply changes) suggests the optimal number of clusters.")
 
 def get_classification_params(model_name, location):
+    '''allow user to do hyperparameter tuning for classification models'''
     params = {}
     if model_name == "Logistic Regression":
         params['penalty'] = location.selectbox("Penalty", ['l2', 'l1', 'elasticnet', 'None'], 
@@ -131,6 +138,7 @@ def get_classification_params(model_name, location):
     return params
 
 def get_regression_params(model_name, location):
+    '''allow user to do hyperparameter tuning for regression models'''
     params = {}
     if model_name == "Random Forest Regressot":
         params['n_estimators'] = location.slider("Number of Estimators", 10, 500, 100, 
@@ -165,6 +173,7 @@ def get_regression_params(model_name, location):
     return params
 
 def get_clustering_params(model_name, location):
+    '''allow user to do hyperparameter tuning for clustering models'''
     params = {}
     if model_name == "K-Means":
         params['n_clusters'] = location.slider("Number of Clusters (k)", 2, 20, 3, 
@@ -209,6 +218,7 @@ def main():
 
     model_description = st.selectbox("Model Description", ['Logistic Regression', 'Linear Regression', 'Random Forest', 'k-Nearest Neighbors', 'Support Vector Machine', 'K-Means', 'DBSCAN'], placeholder="Select a model to see its description.", index=None)
 
+    # short description for different model
     if model_description:
         with st.container(border=True):
             if model_description == "Logistic Regression":

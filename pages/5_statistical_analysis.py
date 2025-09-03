@@ -14,6 +14,7 @@ from statsmodels.stats.diagnostic import lilliefors
 st.set_page_config(page_title="Statistical Analysis", layout="wide")
 
 def create_aesthetic_graph():
+    '''define parameters for graphviz and display decision tree to aid user in selecting statistical tests'''
     graph_attrs = {
         'rankdir': 'TB',
         'bgcolor': 'transparent',
@@ -136,6 +137,7 @@ def create_aesthetic_graph():
     return graph
 
 def display_test_results(title, hypotheses, results, conclusion):
+    '''display results'''
     st.subheader(title)
     with st.container(border=True):
         st.markdown(hypotheses)
@@ -147,12 +149,14 @@ def display_test_results(title, hypotheses, results, conclusion):
         st.markdown(f"**Conclusion:** {conclusion}")
 
 def get_image_download_link(fig, filename, text):
+    '''allow user to doanload and save plot'''
     buf = BytesIO()
     fig.savefig(buf, format="png", dpi=300, bbox_inches='tight')
     buf.seek(0)
     st.download_button(text, buf, file_name=f"{filename}.png", mime="image/png")
 
 def perform_levene_test(df, group_col, value_col):
+    '''Levene's test to assess equality of variances'''
     groups = df[group_col].unique()
     samples = [df[value_col][df[group_col] == g].dropna() for g in groups]
     valid_samples = [s for s in samples if len(s) > 1]
@@ -178,6 +182,7 @@ def perform_levene_test(df, group_col, value_col):
     display_test_results("Levene's Test for Homogeneity of Variances", hypotheses, results, conclusion)
 
 def perform_shapiro_test(data):
+    '''Shapiro-Wilk test to check data normality'''
     stat, p_value = stats.shapiro(data)
 
     hypotheses = """
@@ -195,6 +200,7 @@ def perform_shapiro_test(data):
     display_test_results("Sahpiro-Wilk Test for Normality of Data", hypotheses, results, conclusion)
 
 def perform_one_sample_ttest(data, popmean):
+    '''One Sample t-test'''
     stat, p_value = stats.ttest_1samp(data, popmean=popmean)
     hypotheses = f"""
     - **H₀**: The sample mean is equal to the population mean ({popmean}).
@@ -209,6 +215,7 @@ def perform_one_sample_ttest(data, popmean):
     display_test_results("One-Sample T-Test", hypotheses, results, conclusion)
 
 def perform_ind_ttest(group1, group2):
+    '''Independent t-test'''
     stat, p_value = stats.ttest_ind(group1, group2)
     hypotheses = """
     - **H₀**: The means of the two independent groups are equal.
@@ -223,6 +230,7 @@ def perform_ind_ttest(group1, group2):
     display_test_results("Independent Samples T-Test", hypotheses, results, conclusion)
 
 def perform_paired_ttest(col1_data, col2_data):
+    '''Paired t-test'''
     stat, p_value = stats.ttest_rel(col1_data, col2_data)
     hypotheses = """
     - **H₀**: The means of the two paired samples are equal.
@@ -237,6 +245,7 @@ def perform_paired_ttest(col1_data, col2_data):
     display_test_results("Paired Samples T-Test", hypotheses, results, conclusion)
 
 def perform_one_way_anova(df, cat_col, num_col):
+    '''One-way ANOVA'''
     groups = df[cat_col].unique()
     samples = [df[num_col][df[cat_col] == g].dropna() for g in groups]
     valid_samples = [s for s in samples if len(s) > 1]
@@ -259,6 +268,7 @@ def perform_one_way_anova(df, cat_col, num_col):
     display_test_results("One-Way ANOVA", hypotheses, results, conclusion)
     
 def perform_two_way_anova(df, dep_var, iv1, iv2):
+    '''Two-way ANOVA'''
     df[dep_var] = pd.to_numeric(df[dep_var], errors='coerce')
     df = df.dropna(subset=[dep_var, iv1, iv2])
 
@@ -309,6 +319,7 @@ def perform_two_way_anova(df, dep_var, iv1, iv2):
             st.info(f"Since the p-value is greater than {alpha}, there is **no statistically significant interaction effect**. This suggests that the effect of `{iv1}` on `{dep_var}` is independent of `{iv2}`.")
 
 def perform_mann_whitney_u(group1, group2):
+    '''Mann-Whitney U test'''
     stat, p_value = stats.mannwhitneyu(group1, group2)
     hypotheses = """
     - **H₀**: The distributions of the two groups are equal.
@@ -323,6 +334,7 @@ def perform_mann_whitney_u(group1, group2):
     display_test_results("Mann-Whitney U Test", hypotheses, results, conclusion)
 
 def perform_kruskal_wallis(df, group_col, value_col):
+    '''Kruskal-Wallis test'''
     samples = [df[value_col][df[group_col] == g].dropna() for g in df[group_col].unique()]
     stat, p_value = stats.kruskal(*samples)
     hypotheses = """
@@ -338,6 +350,7 @@ def perform_kruskal_wallis(df, group_col, value_col):
     display_test_results("Kruskal-Wallis H Test", hypotheses, results, conclusion)
     
 def perform_wilcoxon_signed_rank(col1_data, col2_data):
+    '''Wilcoxon signed rank test'''
     stat, p_value = stats.wilcoxon(col1_data, col2_data)
     hypotheses = """
     - **H₀**: The distributions of the paired samples are equal.
@@ -352,6 +365,7 @@ def perform_wilcoxon_signed_rank(col1_data, col2_data):
     display_test_results("Wilcoxon Signed-Rank Test", hypotheses, results, conclusion)
 
 def perform_chi_square(df, col1, col2):
+    '''chi-squared'''
     contingency_table = pd.crosstab(df[col1], df[col2])
     chi2, p_value, dof, expected = stats.chi2_contingency(contingency_table)
     hypotheses = f"""
@@ -367,18 +381,8 @@ def perform_chi_square(df, col1, col2):
     display_test_results("Chi-Square Test of Independence", hypotheses, results, conclusion)
     st.write("#### Contingency Table"); st.dataframe(contingency_table)
 
-def perform_linear_regression_1(df, iv, dv):
-    X = sm.add_constant(df[iv].dropna())
-    y = df[dv].dropna()
-    model = sm.OLS(y, X).fit()
-    st.subheader("Simple Linear Regression Analysis")
-    st.code(model.summary())
-    plt.style.use('dark_background')
-    fig, ax = plt.subplots()
-    sns.regplot(x=iv, y=dv, data=df, ax=ax, scatter_kws={'alpha': 0.5, 'color': 'grey'},line_kws={"color": "#FF5733", "lw": 1.5})
-    st.pyplot(fig)
-
 def perform_linear_regression(df, iv, dv):
+    '''linear regression'''
     temp_df = df[[iv, dv]].apply(pd.to_numeric, errors='coerce').dropna()
     
     if len(temp_df) < 2:
@@ -457,6 +461,7 @@ def perform_linear_regression(df, iv, dv):
         st.markdown("Points with high **Cook's distance** (larger bubbles, especially > 0.5) are considered influential and may warrant further investigation.")
 
 def perform_correlation_analysis(df, selected_cols, method):
+    '''test correlation'''
     st.subheader(f"{method.capitalize()} Correlation Matrix")
     corr_df = df[selected_cols].corr(method=method)
     with st.expander("Customisation Options"):
@@ -527,6 +532,7 @@ def main():
         "📖 Which Test?", "✅ Assumptions", "🔔 Parametric", "〰️ Non-Parametric", "🔗 Associations"
     ])
 
+    # help user to perform the correct test
     with tab_guide:
         st.header("Find the Right Test for Your Data")
         st.markdown("""**Answer these questions to find the right statistical test for your data:**""")
@@ -608,6 +614,7 @@ def main():
         final_graph = create_aesthetic_graph()
         st.graphviz_chart(final_graph)
 
+    # check data assumption
     with tab_assump:
         st.header("Check Your Assumptions")
         st.subheader("1. Normality of Data")
@@ -623,6 +630,7 @@ def main():
             group_col = c2.selectbox("Select Grouping Variable:", valid_levene_cols, key="levene_group")
             if st.button("Run Levene's Test"): perform_levene_test(df, group_col, val_col)
 
+    # parametric tests
     with tab_para:
         st.header("Parametric Tests (Assume Normal Distribution)")
         para_test = st.selectbox("Select Test", ["One-Sample T-Test", "Independent Samples T-Test", "Paired Samples T-Test", "One-Way ANOVA", "Two-Way ANOVA"])
@@ -697,6 +705,7 @@ def main():
                 else:
                     perform_two_way_anova(df, dep_var, iv1, iv2)
 
+    # non-parametric tests
     with tab_nonpara:
         st.header("Non-Parametric Tests (Do Not Assume Normal Distribution)")
         nonpara_test = st.selectbox("Select Test", ["Mann-Whitney U Test", "Kruskal-Wallis H Test", "Wilcoxon Signed-Rank Test", "Chi-Square Test"])
@@ -758,6 +767,7 @@ def main():
                 else:
                     perform_chi_square(df, cat1, cat2)
 
+    # test correlation 
     with tab_assoc:
         st.header("Test Associations")
         assoc_test = st.selectbox("Select Analysis", ["Correlation", "Simple Linear Regression"])
